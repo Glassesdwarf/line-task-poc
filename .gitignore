@@ -1,0 +1,25 @@
+# Dependencies
+node_modules/
+
+# Environment / secrets
+.env
+.env.*
+!.env.example
+
+# Build output
+dist/
+admin-web/.next/
+
+# Prisma generated client
+generated/prisma/
+
+# ngrok
+ngrok.exe
+
+# Logs
+*.log
+
+# AI coding tools
+.agents/
+.claude/
+.windsurf/

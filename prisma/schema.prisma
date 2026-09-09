@@ -1,0 +1,43 @@
+generator client {
+  provider = "prisma-client-js"
+  output   = "../generated/prisma"
+}
+
+datasource db {
+  provider = "mysql"
+}
+
+enum TaskStatus {
+  PENDING
+  COMPLETED
+}
+
+model Employee {
+  id         Int     @id @default(autoincrement())
+  employeeNo String  @unique
+  name       String
+  lineUserId String?
+
+  assignments TaskAssignment[]
+}
+
+model Task {
+  id          Int    @id @default(autoincrement())
+  title       String
+  description String?
+  actionUrl   String
+
+  assignments TaskAssignment[]
+}
+
+model TaskAssignment {
+  id         Int        @id @default(autoincrement())
+  taskId     Int
+  employeeId Int
+  status     TaskStatus @default(PENDING)
+
+  task       Task    @relation(fields: [taskId], references: [id], onDelete: Cascade)
+  employee   Employee @relation(fields: [employeeId], references: [id], onDelete: Cascade)
+
+  @@unique([taskId, employeeId])
+}
