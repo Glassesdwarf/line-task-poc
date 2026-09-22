@@ -40,42 +40,73 @@ async function main() {
     });
 
     // Create tasks
-    await prisma.task.createMany({
+    const dailyReport = await prisma.task.create({
+        data: {
+            title: "Daily Report",
+            description: "Submit today's daily report",
+            actionUrl: "https://forms.google.com/daily-report",
+        },
+    });
+
+    const monthlyReport = await prisma.task.create({
+        data: {
+            title: "Monthly Report",
+            description: "Submit the monthly report",
+            actionUrl: "https://forms.google.com/monthly-report",
+        },
+    });
+
+    const vehicleInspection = await prisma.task.create({
+        data: {
+            title: "Vehicle Inspection",
+            description: "Complete the vehicle inspection",
+            actionUrl: "https://forms.google.com/vehicle",
+        },
+    });
+
+    const safetyChecklist = await prisma.task.create({
+        data: {
+            title: "Safety Checklist",
+            description: "Complete the safety checklist",
+            actionUrl: "https://forms.google.com/safety",
+        },
+    });
+
+    const inventoryCheck = await prisma.task.create({
+        data: {
+            title: "Inventory Check",
+            description: "Check today's inventory",
+            actionUrl: "https://forms.google.com/inventory",
+        },
+    });
+
+    // Create task assignments
+    await prisma.taskAssignment.createMany({
         data: [
             {
-                title: "Daily Report",
-                description: "Submit today's daily report",
-                actionUrl: "https://forms.google.com/daily-report",
-                status: "PENDING",
+                taskId: dailyReport.id,
                 employeeId: alice.id,
+                status: "PENDING",
             },
             {
-                title: "Monthly Report",
-                description: "Submit the monthly report",
-                actionUrl: "https://forms.google.com/monthly-report",
-                status: "PENDING",
+                taskId: monthlyReport.id,
                 employeeId: alice.id,
+                status: "PENDING",
             },
             {
-                title: "Vehicle Inspection",
-                description: "Complete the vehicle inspection",
-                actionUrl: "https://forms.google.com/vehicle",
-                status: "PENDING",
+                taskId: vehicleInspection.id,
                 employeeId: bob.id,
-            },
-            {
-                title: "Safety Checklist",
-                description: "Complete the safety checklist",
-                actionUrl: "https://forms.google.com/safety",
-                status: "COMPLETED",
-                employeeId: charlie.id,
-            },
-            {
-                title: "Inventory Check",
-                description: "Check today's inventory",
-                actionUrl: "https://forms.google.com/inventory",
                 status: "PENDING",
+            },
+            {
+                taskId: safetyChecklist.id,
                 employeeId: charlie.id,
+                status: "COMPLETED",
+            },
+            {
+                taskId: inventoryCheck.id,
+                employeeId: charlie.id,
+                status: "PENDING",
             },
         ],
     });

@@ -26,6 +26,10 @@ type Task = {
   assignments: TaskAssignment[];
 };
 
+const getApiUrl = () => {
+  return `http://${window.location.hostname}:3000`;
+};
+
 export default function Home() {
   const [tasks, setTasks] = useState<Task[]>([]);
   const [loading, setLoading] = useState(true);
@@ -42,9 +46,7 @@ export default function Home() {
 
   const fetchTasks = async () => {
     try {
-      const apiUrl = `http://${window.location.hostname}:3000`;
-
-const response = await fetch(`${apiUrl}/tasks`);
+      const response = await fetch(`${getApiUrl()}/tasks`);
 
       if (!response.ok) {
         throw new Error("Failed to fetch tasks");
@@ -61,9 +63,7 @@ const response = await fetch(`${apiUrl}/tasks`);
 
   const fetchEmployees = async () => {
   try {
-    const apiUrl = `http://${window.location.hostname}:3000`;
-
-    const response = await fetch(`${apiUrl}/employees`);
+    const response = await fetch(`${getApiUrl()}/employees`);
 
     if (!response.ok) {
       throw new Error("Failed to fetch employees");
@@ -80,7 +80,7 @@ const response = await fetch(`${apiUrl}/tasks`);
   const addTask = async () => {
   try {
     const response = await fetch(
-      `${process.env.NEXT_PUBLIC_API_URL}/tasks`,
+      `${getApiUrl()}/tasks`,
       {
         method: "POST",
         headers: {
@@ -114,7 +114,7 @@ const updateTask = async () => {
 
     try {
       const response = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL}/tasks/${editingTask.id}`,
+        `${getApiUrl()}/tasks/${editingTask.id}`,
         {
           method: "PUT",
           headers: {
@@ -147,7 +147,7 @@ const updateTask = async () => {
 const deleteTask = async (id: number) => {
   try {
     const response = await fetch(
-      `http://10.200.11.248:3000/tasks/${id}`,
+      `${getApiUrl()}/tasks/${id}`,
       {
         method: "DELETE",
       }
@@ -157,8 +157,7 @@ const deleteTask = async (id: number) => {
       throw new Error(`Delete failed: ${response.status}`);
     }
 
-    // Refresh the task list
-    fetchTasks();
+    await fetchTasks();
   } catch (error) {
     console.error("Failed to delete task:", error);
   }

@@ -8,6 +8,11 @@ type Employee = {
   employeeNo: string;
   name: string;
   lineUserId: string | null;
+  discordUserId: string | null;
+};
+
+const getApiUrl = () => {
+  return `http://${window.location.hostname}:3000`;
 };
 
 export default function EmployeesPage() {
@@ -22,18 +27,20 @@ export default function EmployeesPage() {
     employeeNo: "",
     name: "",
     lineUserId: "",
+    discordUserId: "",
   });
 
   const [editEmployee, setEditEmployee] = useState({
     employeeNo: "",
     name: "",
     lineUserId: "",
+    discordUserId: "",
   });
 
   const fetchEmployees = async () => {
     try {
       const response = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL}/employees`
+        `${getApiUrl()}/employees`
       );
 
       if (!response.ok) {
@@ -75,6 +82,7 @@ export default function EmployeesPage() {
         employeeNo: "",
         name: "",
         lineUserId: "",
+        discordUserId: "",
       });
 
       setShowAddForm(false);
@@ -93,10 +101,11 @@ export default function EmployeesPage() {
     setEditingEmployee(employee);
 
     setEditEmployee({
-      employeeNo: employee.employeeNo,
-      name: employee.name,
-      lineUserId: employee.lineUserId || "",
-    });
+    employeeNo: employee.employeeNo,
+    name: employee.name,
+    lineUserId: employee.lineUserId || "",
+    discordUserId: employee.discordUserId || "",
+  });
 
     setShowAddForm(false);
   };
@@ -110,7 +119,7 @@ export default function EmployeesPage() {
 
     try {
       const response = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL}/employees/${editingEmployee.id}`,
+        `${getApiUrl()}/employees/${editingEmployee.id}`,
         {
           method: "PUT",
           headers: {
@@ -127,10 +136,11 @@ export default function EmployeesPage() {
       setEditingEmployee(null);
 
       setEditEmployee({
-        employeeNo: "",
-        name: "",
-        lineUserId: "",
-      });
+      employeeNo: "",
+      name: "",
+      lineUserId: "",
+      discordUserId: "",
+    });
 
       await fetchEmployees();
     } catch (error) {
@@ -250,6 +260,19 @@ export default function EmployeesPage() {
                 className="rounded-lg border px-4 py-2"
               />
 
+              <input
+                type="text"
+                placeholder="Discord User ID"
+                value={newEmployee.discordUserId}
+                onChange={(e) =>
+                  setNewEmployee({
+                    ...newEmployee,
+                    discordUserId: e.target.value,
+                  })
+                }
+                className="rounded-lg border px-4 py-2"
+              />
+
               <div className="flex gap-3">
                 <button
                   onClick={addEmployee}
@@ -281,12 +304,12 @@ export default function EmployeesPage() {
 
               <input
                 type="text"
-                placeholder="Employee No."
-                value={editEmployee.employeeNo}
+                placeholder="Discord User ID"
+                value={editEmployee.discordUserId}
                 onChange={(e) =>
                   setEditEmployee({
                     ...editEmployee,
-                    employeeNo: e.target.value,
+                    discordUserId: e.target.value,
                   })
                 }
                 className="rounded-lg border px-4 py-2"

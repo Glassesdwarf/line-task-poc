@@ -4,6 +4,7 @@ import { reply, replyWithMentions, replyWithMultipleMessages } from "./line";
 import { getTodayTasks } from "./task";
 import prisma from "./db/prisma";
 import cors from "cors";
+import { startDiscordBot } from "./discord";
 
 dotenv.config();
 
@@ -159,6 +160,14 @@ app.delete("/tasks/:id", async (req, res) => {
     try {
         const id = Number(req.params.id);
 
+        // Delete all assignments belonging to this task first
+        await prisma.taskAssignment.deleteMany({
+            where: {
+                taskId: id,
+            },
+        });
+
+        // Then delete the task
         await prisma.task.delete({
             where: {
                 id,
@@ -234,13 +243,14 @@ app.get("/employees/:id", async (req, res) => {
 
 app.post("/employees", async (req, res) => {
     try {
-        const { employeeNo, name, lineUserId } = req.body;
+        const { employeeNo, name, lineUserId, discordUserId } = req.body;
 
         const employee = await prisma.employee.create({
             data: {
                 employeeNo,
                 name,
                 lineUserId,
+                discordUserId,
             },
         });
 
@@ -258,7 +268,12 @@ app.put("/employees/:id", async (req, res) => {
     try {
         const id = Number(req.params.id);
 
-        const { employeeNo, name, lineUserId } = req.body;
+        const {
+                employeeNo,
+                name,
+                lineUserId,
+                discordUserId,
+            } = req.body;
 
         const employee = await prisma.employee.update({
             where: {
@@ -268,6 +283,7 @@ app.put("/employees/:id", async (req, res) => {
                 employeeNo,
                 name,
                 lineUserId,
+                discordUserId,
             },
         });
 
@@ -683,6 +699,10 @@ app.post("/webhook", async (req, res) => {
     }
 });
 
-app.listen(3000, () => {
+app.listen(3000, "0.0.0.0", () => {
     console.log("🚀 Server running at http://localhost:3000");
+});
+
+startDiscordBot().catch((error) => {
+    console.error("Failed to start Discord bot:", error);
 });

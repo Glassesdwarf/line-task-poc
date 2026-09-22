@@ -17,6 +17,7 @@ model Employee {
   employeeNo String  @unique
   name       String
   lineUserId String?
+  discordUserId String?
 
   assignments TaskAssignment[]
 }
