@@ -4,13 +4,11 @@ import { PrismaClient } from "../../generated/prisma/client";
 import { PrismaMariaDb } from "@prisma/adapter-mariadb";
 
 const adapter = new PrismaMariaDb({
-    host: "localhost",
-    port: 3307,
-    user: "root",
-    password: "root",
-    database: "line_task_poc",
+    host: process.env.DATABASE_HOST,
+    user: process.env.DATABASE_USER,
+    password: process.env.DATABASE_PASSWORD,
+    database: process.env.DATABASE_NAME,
     connectionLimit: 5,
-    allowPublicKeyRetrieval: true,
 });
 
 const prisma = new PrismaClient({ adapter });

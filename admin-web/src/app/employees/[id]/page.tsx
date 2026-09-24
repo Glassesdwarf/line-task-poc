@@ -2,6 +2,10 @@
 
 import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
+const getApiUrl = () => {
+  return `http://${window.location.hostname}:3000`;
+};
+import AdminNav from "@/components/AdminNav";
 
 type Task = {
   id: number;
@@ -37,7 +41,7 @@ export default function EmployeeTasksPage() {
     const fetchEmployee = async () => {
       try {
         const response = await fetch(
-          `${process.env.NEXT_PUBLIC_API_URL}/employees/${id}`
+          `${getApiUrl()}/employees/${id}`
         );
 
         if (!response.ok) {
@@ -78,6 +82,8 @@ export default function EmployeeTasksPage() {
   }
 
   return (
+    <>
+    <AdminNav />
     <main className="min-h-screen bg-gray-100 p-8">
       <div className="mx-auto max-w-6xl">
 
@@ -146,5 +152,6 @@ export default function EmployeeTasksPage() {
         </div>
       </div>
     </main>
+    </>
   );
 }

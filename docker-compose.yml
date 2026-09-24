@@ -1,11 +1,7 @@
-version: "3.9"
-
 services:
   mysql:
     image: mysql:8.4
-
     container_name: line-task-db
-
     restart: unless-stopped
 
     environment:
@@ -19,6 +15,49 @@ services:
 
     volumes:
       - mysql-data:/var/lib/mysql
+
+  backend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+
+    container_name: line-task-backend
+    restart: unless-stopped
+
+    depends_on:
+      - mysql
+
+    ports:
+      - "3000:3000"
+
+    environment:
+      DATABASE_URL: mysql://lineuser:linepass@mysql:3306/line_task_poc
+
+      DATABASE_HOST: mysql
+      DATABASE_USER: lineuser
+      DATABASE_PASSWORD: linepass
+      DATABASE_NAME: line_task_poc
+
+      LINE_CHANNEL_ACCESS_TOKEN: ${LINE_CHANNEL_ACCESS_TOKEN}
+      #LINE_CHANNEL_SECRET: ${LINE_CHANNEL_SECRET}
+
+      DISCORD_BOT_TOKEN: ${DISCORD_BOT_TOKEN}
+      DISCORD_CHANNEL_ID: ${DISCORD_CHANNEL_ID}
+
+    command: >
+      sh -c "npx prisma migrate deploy &&
+             node dist/src/index.js"
+
+  admin:
+    build:
+      context: ./admin-web
+      dockerfile: Dockerfile
+    container_name: line-task-admin
+    restart: unless-stopped
+    depends_on:
+      - backend
+    ports:
+      - "3001:3001"
 
 volumes:
   mysql-data:

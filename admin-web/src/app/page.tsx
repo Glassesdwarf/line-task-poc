@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import AdminNav from "@/components/AdminNav";
 
 type Employee = {
   id: number;
@@ -169,6 +170,8 @@ const deleteTask = async (id: number) => {
 }, []);
 
   return (
+    <>
+    <AdminNav />
     <main className="min-h-screen bg-gray-100 p-8">
       <div className="mx-auto max-w-6xl">
         <div className="mb-8 flex items-center justify-between">
@@ -555,5 +558,6 @@ const deleteTask = async (id: number) => {
         </div>
       </div>
     </main>
+    </>
   );
 }

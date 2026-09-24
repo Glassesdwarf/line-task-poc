@@ -1,8 +1,8 @@
 # LINE Task Management PoC
 
-A proof-of-concept internal task management and reminder system using the **LINE Messaging API**, **Express**, **TypeScript**, **Prisma**, **MariaDB**, and a **Next.js admin dashboard**.
+A proof-of-concept internal task management and reminder system using the **LINE Messaging API**, **Discord**, **Express**, **TypeScript**, **Prisma**, **MySQL**, and a **Next.js admin dashboard**.
 
-The system allows employees to receive task information through a LINE group while administrators manage employees, tasks, and task assignments through a web dashboard.
+The system allows employees to receive task information through a LINE group and Discord, while administrators manage employees, tasks, and task assignments through a web dashboard.
 
 ---
 
@@ -17,6 +17,14 @@ The system allows employees to receive task information through a LINE group whi
 - Mention assigned employees using LINE's real mention functionality
 - Tasks are automatically removed from `/today` once all assigned employees complete them
 
+### Discord
+
+- Discord bot for task reminders
+- Send task reminders to a Discord channel
+- Mention assigned employees using their Discord user ID
+- Scheduled reminder system
+- Task completion is tracked per employee
+
 ### Task Management
 
 - Create tasks
@@ -24,7 +32,7 @@ The system allows employees to receive task information through a LINE group whi
 - Delete tasks
 - Assign tasks to multiple employees
 - Track task completion per employee
-- Task is considered completed when all assigned employees have completed it
+- A task is considered completed when all assigned employees have completed it
 
 ### Employee Management
 
@@ -32,6 +40,7 @@ The system allows employees to receive task information through a LINE group whi
 - Edit employee information
 - Delete employees when they have no task assignments
 - Link an employee to their LINE Messaging API user ID
+- Link an employee to their Discord user ID
 
 ### Admin Dashboard
 
@@ -43,60 +52,65 @@ The system allows employees to receive task information through a LINE group whi
 
 ---
 
-## Architecture
+# Architecture
 
 ```text
-                    LINE Group
-                        │
-                        │ Webhook
-                        ▼
-              ┌───────────────────┐
-              │ Express / Node.js  │
-              │    Backend API     │
-              └─────────┬─────────┘
-                        │
-              ┌─────────┴─────────┐
-              │                   │
-              ▼                   ▼
-       LINE Messaging API       Prisma
-                                  │
-                                  ▼
-                              MariaDB
-                                  ▲
-                                  │
-                         ┌────────┴────────┐
-                         │                 │
-                         │ REST API        │
-                         │                 │
-                  ┌──────┴──────┐          │
-                  │ Next.js     │◄─────────┘
-                  │ Admin Web   │
-                  └─────────────┘
+                         LINE Group
+                             │
+                             │ Webhook
+                             ▼
+                    ┌───────────────────┐
+                    │ Express / Node.js │
+                    │    Backend API    │
+                    └─────────┬─────────┘
+                              │
+              ┌───────────────┼───────────────┐
+              │               │               │
+              ▼               ▼               ▼
+       LINE Messaging API   Prisma        Discord Bot
+                              │               │
+                              ▼               ▼
+                           MySQL        Discord Server
+                              ▲
+                              │
+                     ┌────────┴────────┐
+                     │   REST API      │
+                     │                 │
+                     ▼                 │
+               ┌──────────────┐        │
+               │   Next.js    │◄───────┘
+               │ Admin Web    │
+               └──────────────┘
+
 Tech Stack
 Backend
-Node.js
-TypeScript
-Express
-Prisma ORM
-MariaDB
-Axios
-LINE Messaging API
+- Node.js
+- TypeScript
+- Express
+- Prisma ORM
+- MySQL 8.4
+- Axios
+- LINE Messaging API
+- Discord.js
 Frontend
-Next.js
-React
-TypeScript
-Tailwind CSS
+- Next.js
+- React
+- TypeScript
+- Tailwind CSS
 Development
-ts-node
-tsx
-nodemon
-ngrok
+- Docker
+- Docker Compose
+- ts-node
+- tsx
+- nodemon
+- ngrok
 Project Structure
 line-task-poc/
 │
 ├── src/
 │   ├── index.ts
 │   ├── line.ts
+│   ├── discord.ts
 │   ├── task.ts
 │   └── db/
 │       └── prisma.ts
@@ -107,155 +121,161 @@ line-task-poc/
 │   └── seed.ts
 │
 ├── generated/
-│   └── prisma/          # Generated automatically
+│   └── prisma/              # Generated automatically
 │
 ├── admin-web/
 │   ├── src/
-│   │   └── app/
+│   │   ├── app/
+│   │   └── components/
 │   ├── package.json
+│   ├── Dockerfile
 │   └── ...
 │
+├── .dockerignore
 ├── .env.example
 ├── .gitignore
 ├── docker-compose.yml
+├── Dockerfile
 ├── package.json
 ├── prisma.config.ts
 ├── tsconfig.json
 └── README.md
 
 generated/prisma/ is generated by Prisma and is not committed to the repository.
-
 Requirements
-
-Before running the project, install:
-
-Node.js
-MariaDB or MySQL
-Git
-A LINE Developers account
-A LINE Official Account / Messaging API channel
-ngrok for local webhook testing
+Recommended: Docker
+To run the complete project, install:
+- Docker Desktop
+- Git
+- A LINE Developers account
+- A LINE Official Account / Messaging API channel
+- A Discord application and bot
+- ngrok for local LINE webhook testing
+Node.js, MySQL, and the admin dashboard dependencies do not need to be installed separately when using Docker Compose.
 Installation
-
-Clone the repository:
-
+1. Clone the repository
 git clone https://github.com/Glassesdwarf/line-task-poc.git
 
 Enter the project:
-
 cd line-task-poc
 
-Install backend dependencies:
-
-npm install
-
-Install admin dashboard dependencies:
-
-cd admin-web
-npm install
-cd ..
-Environment Variables
-
+2. Configure Environment Variables
 Create a .env file in the project root.
-
 You can use .env.example as a template:
+copy .env.example .env
 
-.env.example
+On Linux/macOS:
+cp .env.example .env
 
-Example:
-
+The .env file should contain:
 DATABASE_HOST=localhost
-DATABASE_USER=root
-DATABASE_PASSWORD=your_password
+DATABASE_USER=lineuser
+DATABASE_PASSWORD=linepass
 DATABASE_NAME=line_task_poc
+DATABASE_URL=mysql://lineuser:linepass@localhost:3307/line_task_poc
 
 LINE_CHANNEL_ACCESS_TOKEN=your_channel_access_token
-LINE_CHANNEL_SECRET=your_channel_secret
 
-Never commit the real .env file or LINE credentials to GitHub.
+DISCORD_BOT_TOKEN=your_discord_bot_token
+DISCORD_CHANNEL_ID=your_discord_channel_id
 
+Replace the placeholder values with your actual LINE and Discord credentials.
+Never commit the real .env file to GitHub.
+3. Start the Project with Docker
+From the project root:
+docker compose up -d --build
+
+This starts:
+MySQL       → localhost:3307
+Backend     → http://localhost:3000
+Admin Web   → http://localhost:3001
+
+Check the containers:
+docker compose ps
+
+Expected result:
+line-task-db
+line-task-backend
+line-task-admin
+
+Services
+MySQL
+MySQL runs inside Docker.
+Host:
+localhost:3307
+
+Inside the Docker Compose network, the backend connects to:
+mysql:3306
+
+Database:
+line_task_poc
+
+The database uses a Docker volume so the database data persists when containers are restarted.
+Backend
+The Express backend runs on:
+http://localhost:3000
+
+The backend container automatically runs Prisma migrations when it starts.
+You can view backend logs with:
+docker compose logs backend
+
+Or:
+docker compose logs backend --tail=30
+
+Admin Dashboard
+The Next.js admin dashboard runs on:
+http://localhost:3001
+
+Open the dashboard in a browser:
+http://localhost:3001
+
+The dashboard communicates with the backend API on port 3000.
 Database Setup
-
-Generate the Prisma client:
-
-npx prisma generate
-
-Run the database migrations:
-
+When using Docker Compose, database migrations are automatically applied when the backend container starts.
+You normally do not need to run:
 npx prisma migrate dev
 
-Seed the database:
+manually.
+To check migration status:
+docker compose exec backend npx prisma migrate status
 
-npm run seed
+To generate the Prisma client during development:
+npx prisma generate
 
-The database schema is located at:
-
+The Prisma schema is located at:
 prisma/schema.prisma
-Running the Backend
-
-From the project root:
-
-npm run dev
-
-The backend runs on:
-
-http://localhost:3000
-Running the Admin Dashboard
-
-Open another terminal:
-
-cd admin-web
-npm run dev
-
-The Next.js development server will normally be available at:
-
-http://localhost:3000
-
-The admin dashboard and backend may need separate ports depending on the local development configuration. Make sure the frontend API URL matches the backend port.
 
 LINE Webhook Setup
-
-Because LINE needs to access the webhook from the internet, ngrok can be used during local development.
-
-The project includes an npm script for ngrok:
-
+LINE needs to access the webhook from the internet.
+For local development, ngrok can be used to expose the backend.
+The project includes an npm script:
 npm run ngrok
 
 This starts:
-
 ngrok http 3000
 
 ngrok will provide a public HTTPS URL such as:
-
 https://example.ngrok-free.app
 
 Configure the LINE webhook URL as:
-
 https://example.ngrok-free.app/webhook
 
 The exact ngrok URL changes when the tunnel is restarted unless a persistent/static setup is used.
-
 LINE Commands
-
 The bot currently supports the following commands.
-
-Register an employee
+Register an Employee
 /register Alice
 
 The employee name must match an employee in the database.
-
 The bot stores the LINE Messaging API user ID associated with the message.
-
 Example response:
-
 ✅ ลงทะเบียนสำเร็จ
-View today's incomplete tasks
+
+View Today's Incomplete Tasks
 /today
 
 The bot retrieves tasks that still have at least one incomplete assignment.
-
 Example:
-
 📋 งานวันนี้
 
 1. ตรวจสอบเอกสาร
@@ -265,32 +285,37 @@ Example:
    ผู้รับผิดชอบ: Bob, Charlie
 
 Assigned employees can be mentioned using LINE's mention functionality when their LINE user ID has been registered.
-
-Complete a task
+Complete a Task
 /done 1
 
 The number refers to the task number shown by /today.
-
 The bot verifies:
-
-The LINE user is registered
-The employee is assigned to the task
-The employee has not already completed the task
-
+- The LINE user is registered
+- The employee is assigned to the task
+- The employee has not already completed the task
 The employee's assignment is then changed to:
-
 COMPLETED
 
 If other employees still have incomplete assignments, the task remains active.
+Once every assigned employee has completed the task, the task will no longer appear in /today.
+Discord
+The project includes a Discord bot for sending task reminders.
+The bot uses the employee's Discord user ID to mention assigned employees.
+The Discord bot requires:
+DISCORD_BOT_TOKEN=your_discord_bot_token
+DISCORD_CHANNEL_ID=your_discord_channel_id
 
-Once every assigned employee has completed the task, the task is considered completed and will no longer appear in /today.
+The Discord bot sends reminders to the configured Discord channel.
+The bot runs as part of the backend container.
+Check the Discord bot status using:
+docker compose logs backend
+
+A successful startup should include a message similar to:
+Discord bot logged in as TaskBot#9612
 
 Task Assignment Status
-
 Task status is stored at the assignment level.
-
 Conceptually:
-
 Employee
     │
     └── TaskAssignment
@@ -301,145 +326,140 @@ Employee
                  └── COMPLETED
 
 For example:
-
 Task: Prepare report
 
 Alice    → COMPLETED
 Bob      → PENDING
 Charlie  → COMPLETED
 
-The overall task is still considered:
-
-PENDING
-
-because Bob has not completed the assignment.
-
+The overall task is still considered incomplete because Bob has not completed the assignment.
 Once:
-
 Alice    → COMPLETED
 Bob      → COMPLETED
 Charlie  → COMPLETED
 
-the task becomes:
-
-COMPLETED
+the task is considered completed.
 API Endpoints
-
-The backend currently provides REST endpoints for the admin dashboard.
-
+The backend provides REST endpoints for the admin dashboard.
 Tasks
-GET    /tasks
-POST   /tasks
-PUT    /tasks/:id
-DELETE /tasks/:id
+GET     /tasks
+POST    /tasks
+PUT     /tasks/:id
+DELETE  /tasks/:id
+
 Employees
-GET    /employees
-GET    /employees/:id
-POST   /employees
-PUT    /employees/:id
-DELETE /employees/:id
+GET     /employees
+GET     /employees/:id
+POST    /employees
+PUT     /employees/:id
+DELETE  /employees/:id
+
 LINE Webhook
-POST   /webhook
+POST    /webhook
+
 Development Workflow
+Recommended Docker Workflow
+Start the complete system:
+docker compose up -d --build
 
-A typical local development setup uses three terminals.
+Check the containers:
+docker compose ps
 
-Terminal 1 — Backend
+View backend logs:
+docker compose logs backend
+
+View admin logs:
+docker compose logs admin
+
+Stop the system:
+docker compose down
+
+Restart the containers:
+docker compose restart
+
+Local Development Without Docker
+Docker Compose is the recommended way to run the complete PoC.
+For backend development without Docker, install Node.js and MySQL separately.
+Install backend dependencies:
+npm install
+
+Run the backend:
 npm run dev
-Terminal 2 — ngrok
-npm run ngrok
-Terminal 3 — Admin Dashboard
+
+The backend normally runs on:
+http://localhost:3000
+
+For the admin dashboard:
 cd admin-web
+npm install
 npm run dev
 
-Then:
+The admin dashboard runs on:
+http://localhost:3001
 
-LINE
-  │
-  ▼
-ngrok
-  │
-  ▼
-Express
-  │
-  ├── Prisma → MariaDB
-  │
-  └── LINE Messaging API
+For LINE webhook testing, run ngrok against the backend:
+npm run ngrok
+
 Database Model
-
 The main entities are:
-
 Employee
-   │
-   │ 1:N
-   ▼
+    │
+    │ 1:N
+    ▼
 TaskAssignment
-   ▲
-   │ N:1
-   │
+    ▲
+    │ N:1
+    │
 Task
+
 Employee
-
-Stores employee information and their LINE Messaging API user ID.
-
+Stores employee information and their LINE and Discord user IDs.
 Task
-
 Stores the task itself.
-
 TaskAssignment
-
 Connects an employee to a task and stores that employee's completion status.
-
 Security Notes
-
 This project is a proof of concept.
-
 Do not commit:
-
 .env
 LINE channel access tokens
 LINE channel secrets
+Discord bot tokens
 database passwords
 ngrok credentials
 
-The repository uses .gitignore to prevent these files from being committed.
-
+The repository uses .gitignore to prevent sensitive files from being committed.
 Use .env.example as the configuration template.
-
-If a secret is accidentally exposed, revoke/rotate it immediately.
-
+If a secret is accidentally exposed, revoke and rotate it immediately.
 Current Status
-
 This project is currently a Proof of Concept (PoC).
-
 Implemented:
-
-LINE webhook
-Employee management
-Task management
-Task assignments
-Per-employee completion status
-/register
-/today
-/done
-LINE user mentions
-Prisma + MariaDB
-Next.js admin dashboard
-Local ngrok webhook development
-
-Future improvements may include:
-
-Authentication for the admin dashboard
-Better task editing without resetting assignment statuses
-Task due dates
-Scheduled reminders
-Rich LINE messages
-Better error handling
-Production deployment
-Role-based access control
-Task history / audit logs
-
+- LINE webhook
+- Employee management
+- Task management
+- Multiple task assignments
+- Per-employee completion status
+- /register
+- /today
+- /done
+- LINE user mentions
+- Discord bot
+- Discord employee mentions
+- Prisma + MySQL
+- Next.js admin dashboard
+- Docker Compose deployment
+- Local ngrok webhook development
+Future Improvements
+Possible future improvements include:
+- Authentication for the admin dashboard
+- Better task editing without resetting assignment statuses
+- Task due dates
+- Scheduled task reminders
+- Rich LINE messages
+- Better error handling
+- Production deployment
+- Role-based access control
+- Task history / audit logs
 License
-
 This project is currently a private/internal proof of concept.
 

@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
+import AdminNav from "@/components/AdminNav";
 
 type Employee = {
   id: number;
@@ -64,7 +65,7 @@ export default function EmployeesPage() {
   const addEmployee = async () => {
     try {
       const response = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL}/employees`,
+        `${getApiUrl()}/employees`,
         {
           method: "POST",
           headers: {
@@ -161,7 +162,7 @@ export default function EmployeesPage() {
 
     try {
       const response = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL}/employees/${employee.id}`,
+        `${getApiUrl()}/employees/${employee.id}`,
         {
           method: "DELETE",
         }
@@ -186,6 +187,8 @@ export default function EmployeesPage() {
   }, []);
 
   return (
+    <>
+    <AdminNav />
     <main className="min-h-screen bg-gray-100 p-8">
       <div className="mx-auto max-w-6xl">
 
@@ -444,5 +447,6 @@ export default function EmployeesPage() {
         </div>
       </div>
     </main>
+    </>
   );
 }
